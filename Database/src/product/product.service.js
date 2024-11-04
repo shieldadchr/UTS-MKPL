@@ -22,6 +22,13 @@ const getProductById = async (id) => {
   return product;
 };
 
+const searchProducts = async (query) => {
+  const products = await findProducts();
+  return products.filter(product => 
+    product.name.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
 const createProduct = async (newProductData) => {
   const product = await insertProduct(newProductData);
 
