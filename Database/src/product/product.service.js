@@ -39,6 +39,13 @@ const editProductById = async (id, productData) => {
   return product;
 };
 
+const searchProducts = async (query) => {
+  const products = await findProducts();
+  return products.filter(product => 
+    product.name.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
 
 const addFavoriteProduct = (productId) => {
   if (!favoriteProducts.includes(productId)) {
