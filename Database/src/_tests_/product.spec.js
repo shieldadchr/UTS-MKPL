@@ -1,14 +1,14 @@
-// product.service.test.js
 const {
   getAllProducts,
   getProductById,
   createProduct,
   deleteProductById,
   editProductById,
+  addFavoriteProduct,
+  getFavoriteProducts,
+  removeFavoriteProduct,
 } = require("../product/product.service");
 
-// Mock product repository functions
-jest.mock("../product/product.repository");
 const {
   findProducts,
   findProductById,
@@ -17,6 +17,8 @@ const {
   editProduct,
 } = require("../product/product.repository");
 
+jest.mock("../product/product.repository");
+
 // Mock product data
 const mockProduct = {
   id: 1,
@@ -24,14 +26,12 @@ const mockProduct = {
   price: 10.99,
 };
 
+const favoriteProducts = []; // Array untuk menyimpan ID produk favorit
+
 describe("Product Service", () => {
   beforeEach(() => {
     // Reset mocks before each test
-    findProducts.mockReset();
-    findProductById.mockReset();
-    insertProduct.mockReset();
-    deleteProduct.mockReset();
-    editProduct.mockReset();
+    jest.clearAllMocks();
   });
 
   describe("getAllProducts", () => {
@@ -135,6 +135,37 @@ describe("Product Service", () => {
       await expect(
         editProductById(mockProduct.id, mockProduct)
       ).rejects.toThrow("Product not found");
+    });
+  });
+
+  // Fitur Favorit Produk
+  describe("Favorite Products", () => {
+    test("should add a product to favorites", () => {
+      addFavoriteProduct(1);
+      expect(favoriteProducts).toContain(1);
+    });
+
+    test("should not add a duplicate product to favorites", () => {
+      addFavoriteProduct(1);
+      addFavoriteProduct(1); // Adding again
+      expect(favoriteProducts).toHaveLength(1);
+    });
+
+    test("should return favorite products", async () => {
+      findProducts.mockResolvedValue([
+        { id: 1, name: "Product 1" },
+        { id: 2, name: "Product 2" },
+      ]);
+      addFavoriteProduct(1);
+
+      const favorites = await getFavoriteProducts();
+      expect(favorites).toEqual([{ id: 1, name: "Product 1" }]);
+    });
+
+    test("should remove a product from favorites", () => {
+      addFavoriteProduct(1);
+      removeFavoriteProduct(1);
+      expect(favoriteProducts).not.toContain(1);
     });
   });
 });
