@@ -23,6 +23,11 @@ const createUser = async (userData) => {
   return user;
 };
 
+const notifyUsers = (product) => {
+  // Logika untuk mengirim notifikasi
+  console.log(`Notify users: New product added - ${product.name}`);
+};
+
 const loginUser = async (username, password) => {
   const user = await findUsersByUsername(username);
   if (!user) {
