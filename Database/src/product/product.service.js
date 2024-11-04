@@ -6,15 +6,13 @@ const {
   editProduct,
 } = require("./product.repository");
 
-const getAllProducts = async (sortBy = 'name', order = 'asc') => {
-  let products = await findProducts();
+// Menambahkan variabel untuk batas default produk yang ditampilkan
+const DEFAULT_PRODUCT_LIMIT = 100; // Misalnya, batas default untuk pengambilan produk
 
-  products = products.sort((a, b) => {
-    if (sortBy === 'price') {
-      return order === 'asc' ? a.price - b.price : b.price - a.price;
-    }
-    return order === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-  });
+const getAllProducts = async (page = 1, limit = DEFAULT_PRODUCT_LIMIT) => {
+  // Menghitung offset untuk pagination
+  const offset = (page - 1) * limit;
+  const products = await findProducts(limit, offset); // Menggunakan limit dan offset
 
   return products;
 };
@@ -27,13 +25,6 @@ const getProductById = async (id) => {
   }
 
   return product;
-};
-
-const searchProducts = async (query) => {
-  const products = await findProducts();
-  return products.filter(product => 
-    product.name.toLowerCase().includes(query.toLowerCase())
-  );
 };
 
 const createProduct = async (newProductData) => {
@@ -62,4 +53,5 @@ module.exports = {
   createProduct,
   deleteProductById,
   editProductById,
+  DEFAULT_PRODUCT_LIMIT, // Menambahkan variabel ke ekspor
 };
