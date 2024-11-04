@@ -73,5 +73,20 @@ const deleteUser = async (username) => {
   return { message: `User ${username} has been deleted successfully` };
 };
 
-// TAMBAHAN: Ekspor fungsi deleteUser
-export { createUser, loginUser, editUsersByName, getUser, getAllUsers, deleteUser };
+const updatePassword = async (username, newPassword) => {
+  const user = await findUsersByUsername(username);
+  if (!user) {
+    throw new Error(`User ${username} not found`);
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await prisma.Users.update({
+    where: { username: username },
+    data: { password: hashedPassword },
+  });
+
+  return { message: `Password for ${username} has been updated successfully` };
+};
+
+// TAMBAHAN: Ekspor fungsi updatePassword
+export { createUser, loginUser, editUsersByName, getUser, getAllUsers, deleteUser, updatePassword };
