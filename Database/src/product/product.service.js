@@ -8,8 +8,12 @@ const {
 
 const favoriteProducts = []; // Array untuk menyimpan ID produk favorit
 
-const getAllProducts = async () => {
-  const products = await findProducts();
+const DEFAULT_PRODUCT_LIMIT = 10; // Misalnya, batas produk default
+
+const getAllProducts = async (page = 1) => {
+  const offset = (page - 1) * DEFAULT_PRODUCT_LIMIT;
+  const products = await findProducts(DEFAULT_PRODUCT_LIMIT, offset);
+
   return products;
 };
 
