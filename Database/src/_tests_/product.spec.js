@@ -1,145 +1,168 @@
 const {
   getAllProducts,
-  createProduct,
   getProductById,
+  createProduct,
   deleteProductById,
   editProductById,
-} = require("../product/product.service");
+  addFavoriteProduct,
+  getFavoriteProducts,
+  removeFavoriteProduct,
+  updateStock,
+} = require("./product.service");
 
-// Mock product repository functions
-jest.mock("../product/product.repository");
 const {
   findProducts,
   findProductById,
   insertProduct,
   deleteProduct,
   editProduct,
-} = require("../product/product.repository");
+} = require("./product.repository");
 
-// Mock product data
-const mockProduct = {
-  id: 1,
-  name: "Test Product",
-  price: 10.99,
-};
+// Mock repository functions
+jest.mock("./product.repository");
 
 describe("Product Service", () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    findProducts.mockReset();
-    findProductById.mockReset();
-    insertProduct.mockReset();
-    deleteProduct.mockReset();
-    editProduct.mockReset();
+    jest.clearAllMocks();
   });
 
   describe("getAllProducts", () => {
-    it("should return products with default limit", async () => {
+    it("should return all products with pagination", async () => {
       const mockProducts = [
-        { id: 1, name: "Product 1" },
-        { id: 2, name: "Product 2" },
+        { id: 1, name: "Product 1", stock: 100 },
+        { id: 2, name: "Product 2", stock: 50 },
       ];
-      
-      findProducts.mockResolvedValue(mockProducts); // Memock fungsi repositori
+      findProducts.mockResolvedValue(mockProducts);
 
-      const result = await getAllProducts(); // Memanggil fungsi tanpa parameter
+      const result = await getAllProducts(1);
 
-      expect(findProducts).toHaveBeenCalledWith(DEFAULT_PRODUCT_LIMIT, 0); // Memeriksa pemanggilan dengan default limit dan offset
+      expect(findProducts).toHaveBeenCalledWith(10, 0); // Memeriksa pemanggilan dengan default limit
       expect(result).toEqual(mockProducts); // Memeriksa hasil yang diharapkan
     });
 
-    it("should return products with specified limit and page", async () => {
-      const mockProducts = [
-        { id: 1, name: "Product 1" },
-        { id: 2, name: "Product 2" },
-      ];
-      
-      findProducts.mockResolvedValue(mockProducts); // Memock fungsi repositori
+    it("should return an empty array if no products found", async () => {
+      findProducts.mockResolvedValue([]);
 
-      const result = await getAllProducts(2, 10); // Memanggil fungsi dengan halaman 2 dan limit 10
+      const result = await getAllProducts(1);
 
-      expect(findProducts).toHaveBeenCalledWith(10, 10); // Memeriksa pemanggilan dengan limit 10 dan offset 10 (halaman 2)
-      expect(result).toEqual(mockProducts); // Memeriksa hasil yang diharapkan
-    });
-
-    it("should handle no products found", async () => {
-      findProducts.mockResolvedValue([]); // Memock tidak ada produk
-
-      const result = await getAllProducts(1); // Memanggil fungsi dengan halaman 1
-
-      expect(findProducts).toHaveBeenCalledWith(DEFAULT_PRODUCT_LIMIT, 0); // Memeriksa pemanggilan dengan default limit
+      expect(findProducts).toHaveBeenCalledWith(10, 0); // Memeriksa pemanggilan dengan default limit
       expect(result).toEqual([]); // Memeriksa hasil yang diharapkan
     });
   });
 
   describe("getProductById", () => {
-    it("should return product by id", async () => {
-      const mockProduct = { id: 1, name: "Product 1" };
-      findProductById.mockResolvedValue(mockProduct); // Memock produk yang ditemukan
+    it("should return product details if found", async () => {
+      const mockProduct = { id: 1, name: "Product 1", stock: 100 };
+      findProductById.mockResolvedValue(mockProduct);
 
-      const result = await getProductById(1); // Memanggil fungsi dengan id
+      const result = await getProductById(1);
 
-      expect(findProductById).toHaveBeenCalledWith(1); // Memeriksa pemanggilan fungsi
-      expect(result).toEqual(mockProduct); // Memeriksa hasil yang diharapkan
+      expect(findProductById).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockProduct);
     });
 
     it("should throw an error if product is not found", async () => {
-      findProductById.mockResolvedValue(null); // Memock produk tidak ditemukan
+      findProductById.mockResolvedValue(null);
 
-      await expect(getProductById(1)).rejects.toThrow("Product not found"); // Memeriksa apakah error dilempar
+      await expect(getProductById(1)).rejects.toThrow("Product not found");
     });
   });
 
   describe("createProduct", () => {
     it("should create a new product", async () => {
-      const newProduct = { name: "New Product" };
-      const mockProduct = { id: 1, ...newProduct };
-      insertProduct.mockResolvedValue(mockProduct); // Memock hasil produk baru
+      const newProductData = { name: "New Product", stock: 100 };
+      const mockProduct = { id: 3, ...newProductData };
+      insertProduct.mockResolvedValue(mockProduct);
 
-      const result = await createProduct(newProduct); // Memanggil fungsi untuk membuat produk
+      const result = await createProduct(newProductData);
 
-      expect(insertProduct).toHaveBeenCalledWith(newProduct); // Memeriksa pemanggilan fungsi
-      expect(result).toEqual(mockProduct); // Memeriksa hasil yang diharapkan
+      expect(insertProduct).toHaveBeenCalledWith(newProductData);
+      expect(result).toEqual(mockProduct);
     });
   });
 
   describe("deleteProductById", () => {
     it("should delete a product by id", async () => {
       const mockProduct = { id: 1, name: "Product 1" };
-      findProductById.mockResolvedValue(mockProduct); // Memock produk ditemukan
-      deleteProduct.mockResolvedValue(); // Memock penghapusan berhasil
+      findProductById.mockResolvedValue(mockProduct);
 
-      await deleteProductById(1); // Memanggil fungsi untuk menghapus produk
+      await deleteProductById(1);
 
-      expect(findProductById).toHaveBeenCalledWith(1); // Memeriksa pemanggilan fungsi
-      expect(deleteProduct).toHaveBeenCalledWith(1); // Memeriksa pemanggilan penghapusan
+      expect(findProductById).toHaveBeenCalledWith(1);
+      expect(deleteProduct).toHaveBeenCalledWith(1);
     });
 
-    it("should throw an error if product is not found", async () => {
-      findProductById.mockResolvedValue(null); // Memock produk tidak ditemukan
+    it("should throw an error if product to delete is not found", async () => {
+      findProductById.mockResolvedValue(null);
 
-      await expect(deleteProductById(1)).rejects.toThrow("Product not found"); // Memeriksa apakah error dilempar
+      await expect(deleteProductById(1)).rejects.toThrow("Product not found");
     });
   });
 
   describe("editProductById", () => {
-    it("should edit a product by id", async () => {
-      const mockProduct = { id: 1, name: "Product 1" };
-      const updatedProduct = { name: "Updated Product" };
-      findProductById.mockResolvedValue(mockProduct); // Memock produk ditemukan
-      editProduct.mockResolvedValue({ ...mockProduct, ...updatedProduct }); // Memock hasil pengeditan
+    it("should edit a product", async () => {
+      const mockProduct = { id: 1, name: "Product 1", stock: 100 };
+      const updatedData = { name: "Updated Product" };
+      findProductById.mockResolvedValue(mockProduct);
+      editProduct.mockResolvedValue({ ...mockProduct, ...updatedData });
 
-      const result = await editProductById(1, updatedProduct); // Memanggil fungsi untuk mengedit produk
+      const result = await editProductById(1, updatedData);
 
-      expect(findProductById).toHaveBeenCalledWith(1); // Memeriksa pemanggilan fungsi
-      expect(editProduct).toHaveBeenCalledWith(1, updatedProduct); // Memeriksa pemanggilan edit
-      expect(result).toEqual({ ...mockProduct, ...updatedProduct }); // Memeriksa hasil yang diharapkan
+      expect(findProductById).toHaveBeenCalledWith(1);
+      expect(editProduct).toHaveBeenCalledWith(1, { ...mockProduct, ...updatedData });
+      expect(result).toEqual({ ...mockProduct, ...updatedData });
+    });
+  });
+
+  describe("updateStock", () => {
+    it("should update the stock of a product", async () => {
+      const mockProduct = { id: 1, name: "Product 1", stock: 100 };
+      findProductById.mockResolvedValue(mockProduct);
+      editProduct.mockResolvedValue({ ...mockProduct, stock: 120 });
+
+      const result = await updateStock(1, 20); // Menambah 20 stok
+
+      expect(findProductById).toHaveBeenCalledWith(1);
+      expect(editProduct).toHaveBeenCalledWith(1, { ...mockProduct, stock: 120 });
+      expect(result).toEqual({ ...mockProduct, stock: 120 });
+    });
+  });
+
+  describe("Favorite Products", () => {
+    beforeEach(() => {
+      // Reset favoriteProducts before each test
+      global.favoriteProducts = [];
     });
 
-    it("should throw an error if product is not found", async () => {
-      findProductById.mockResolvedValue(null); // Memock produk tidak ditemukan
+    it("should add a product to favorites", () => {
+      addFavoriteProduct(1);
+      expect(global.favoriteProducts).toContain(1);
+    });
 
-      await expect(editProductById(1, {})).rejects.toThrow("Product not found"); // Memeriksa apakah error dilempar
+    it("should not add a duplicate product to favorites", () => {
+      addFavoriteProduct(1);
+      addFavoriteProduct(1);
+      expect(global.favoriteProducts).toEqual([1]); // Harus tetap satu
+    });
+
+    it("should get favorite products", async () => {
+      const mockProduct = { id: 1, name: "Product 1", stock: 100 };
+      favoriteProducts.push(1);
+      findProducts.mockResolvedValue([mockProduct]);
+
+      const result = await getFavoriteProducts();
+
+      expect(result).toEqual([mockProduct]);
+    });
+
+    it("should remove a product from favorites", () => {
+      favoriteProducts.push(1);
+      removeFavoriteProduct(1);
+      expect(global.favoriteProducts).not.toContain(1);
+    });
+
+    it("should not throw error when removing a product that is not in favorites", () => {
+      expect(() => removeFavoriteProduct(1)).not.toThrow();
     });
   });
 });
