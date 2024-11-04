@@ -46,6 +46,12 @@ const searchProducts = async (query) => {
   );
 };
 
+const updateStock = async (id, quantity) => {
+  const product = await getProductById(id);
+  product.stock += quantity; // Update stok
+  await editProduct(id, product);
+  return product;
+};
 
 const addFavoriteProduct = (productId) => {
   if (!favoriteProducts.includes(productId)) {
