@@ -10,9 +10,16 @@ const favoriteProducts = []; // Array untuk menyimpan ID produk favorit
 
 const DEFAULT_PRODUCT_LIMIT = 10; // Misalnya, batas produk default
 
-const getAllProducts = async (page = 1) => {
-  const offset = (page - 1) * DEFAULT_PRODUCT_LIMIT;
-  const products = await findProducts(DEFAULT_PRODUCT_LIMIT, offset);
+const getAllProducts = async (sortBy = 'name', order = 'asc') => {
+  let products = await findProducts();
+
+  products = products.sort((a, b) => {
+    if (sortBy === 'price'){  
+    return order === 'asc' ? a.price - b.price : b.price - a.price;
+  }
+  return order === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+
+  });
 
   return products;
 };
