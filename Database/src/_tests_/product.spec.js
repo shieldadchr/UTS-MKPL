@@ -18,35 +18,63 @@ const {
   editProduct,
 } = require("./product.repository");
 
-// Mock repository functions
-jest.mock("./product.repository");
+// Mock product data
+const mockProduct = {
+  id: 1,
+  name: "Test Product",
+  price: 10.99,
+};
 
+const mockProducts = [
+  { id: 1, name: "Banana", price: 200 },
+  { id: 2, name: "Apple", price: 150 },
+  { id: 3, name: "Cherry", price: 100 },
+];
 describe("Product Service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("getAllProducts", () => {
-    it("should return all products with pagination", async () => {
-      const mockProducts = [
-        { id: 1, name: "Product 1", stock: 100 },
-        { id: 2, name: "Product 2", stock: 50 },
-      ];
+    beforeEach(() => {
       findProducts.mockResolvedValue(mockProducts);
-
-      const result = await getAllProducts(1);
-
-      expect(findProducts).toHaveBeenCalledWith(10, 0); // Memeriksa pemanggilan dengan default limit
-      expect(result).toEqual(mockProducts); // Memeriksa hasil yang diharapkan
     });
 
-    it("should return an empty array if no products found", async () => {
-      findProducts.mockResolvedValue([]);
+    it("should return all products sorted by name in ascending order by default", async () => {
+      const result = await getAllProducts();
+      expect(findProducts).toHaveBeenCalled();
+      expect(result).toEqual([
+        { id: 2, name: "Apple", price: 150 },
+        { id: 1, name: "Banana", price: 200 },
+        { id: 3, name: "Cherry", price: 100 },
+      ]);
+    });
 
-      const result = await getAllProducts(1);
+    it("should return products sorted by name in descending order", async () => {
+      const result = await getAllProducts('name', 'desc');
+      expect(result).toEqual([
+        { id: 3, name: "Cherry", price: 100 },
+        { id: 1, name: "Banana", price: 200 },
+        { id: 2, name: "Apple", price: 150 },
+      ]);
+    });
 
-      expect(findProducts).toHaveBeenCalledWith(10, 0); // Memeriksa pemanggilan dengan default limit
-      expect(result).toEqual([]); // Memeriksa hasil yang diharapkan
+    it("should return products sorted by price in ascending order", async () => {
+      const result = await getAllProducts('price', 'asc');
+      expect(result).toEqual([
+        { id: 3, name: "Cherry", price: 100 },
+        { id: 2, name: "Apple", price: 150 },
+        { id: 1, name: "Banana", price: 200 },
+      ]);
+    });
+
+    it("should return products sorted by price in descending order", async () => {
+      const result = await getAllProducts('price', 'desc');
+      expect(result).toEqual([
+        { id: 1, name: "Banana", price: 200 },
+        { id: 2, name: "Apple", price: 150 },
+        { id: 3, name: "Cherry", price: 100 },
+      ]);
     });
   });
 
