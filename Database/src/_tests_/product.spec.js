@@ -8,7 +8,10 @@ const {
   getFavoriteProducts,
   removeFavoriteProduct,
   updateStock,
-} = require("./product.service");
+} = require("../product/product.service");
+
+// Mock product repository functions
+jest.mock("../product/product.repository");
 
 const {
   findProducts,
@@ -16,7 +19,7 @@ const {
   insertProduct,
   deleteProduct,
   editProduct,
-} = require("./product.repository");
+} = require("../product/product.repository");
 
 // Mock product data
 const mockProduct = {
